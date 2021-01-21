@@ -18,6 +18,12 @@ print(("Mon id",my_team_id), file=sys.stderr, flush=True)
 
 
 
+def getSymetric(center,extern):
+    xsym = 2*center[0]-extern[0]
+    ysym = 2*center[1]-extern[1]
+    return [xsym,ysym]
+
+
 def barycentreMoi(X,Y): #renvoie le barycentre de notre equipe
     xMoy = sum(X)/len(X) 
     yMoy = sum(Y)/len(Y)
@@ -34,14 +40,21 @@ def distMoy(coordonees,goal):
     return M
 
 def fantomeLePlusProche(listeFantomes,buster):
+    
     indice = 0
     minDist = 30000 # plus grand que la map
-    for k in range len(listeFantomes):
-        distance = distance([listeFantomes[k][1],[listeFantomes[k][2]],buster) #distance entre 1 fantome et le buster concerné, pour le moment le hunter
+    n=len(listeFantomes)
+    for k in range(n):
+        #indice+=1
+        LK = listeFantomes[k]
+        dist = distance([   LK[1] , LK[2] ],buster) #distance entre 1 fantome et le buster concerné, pour le moment le hunter
         if(dist<minDist):
-            minDist = dist
-            indice = k
-    return k
+           minDist = dist
+           indice = k
+    return indice
+
+
+
 
 
 # game loop
@@ -59,7 +72,11 @@ while True:
     coorSupportX  =8000
     coorSupportY =4500
 
+    coorFantomeProche = [0,0]
+    idFantome  = 0
     #les actions de chacun
+    huntDoBust = False
+    
     supDoRadar = False
 
 
@@ -123,10 +140,30 @@ while True:
             if(not radarDone):
                 supDoRadar = True
                 radarDone  = True
+    
+        #sinon on attaque
 
-    else: #si on voit un ou des fantomes
+
+        #IL Y A UNE ERREUR DANS CE BLOC EN DESSOUS 
+
+
+        else: #si on voit un ou des fantomes
+            indiceF = fantomeLePlusProche(equipeFantome,currentCoorHunter)
+            coorFantomeProche = [equipeFantome[indiceF][1],equipeFantome[indiceF][2] ]
+            idFantome  = equipeFantome[indiceF][0] #l'ID du fantome le plus proche pour savoir sur qui tirer
+            #si la distance du plus proche fantome est trop élevée
+            if(distance(coorFantomeProche,currentCoorHunter)>1760):
+                #on se rapproche du fantome
+                coorHunterX = coorFantomeProche[0]
+                coorHunterY = coorFantomeProche[1]
+            elif(distance(coorFantomeProche,currentCoorHunter)<900):#si la distance est trop faible
+                #on s'écarte
+                symet = getSymetric(currentCoorHunter,coorFantomeProche)
+                coorHunterX = symet[0]
+                coorHunterY = symet[1]
+            else: #on tape
+                huntDoBust = True
         # le hunter et l'attrapeur vont se rapprocher du fantome le plus proche du hunter
-        indiceF = fantomeLePlusProche(equipeFantome,currentCoorHunter)
 
     # Write an action using print
     # To debug: print("Debug messages...", file=sys.stderr, flush=True)
@@ -139,8 +176,30 @@ while True:
     # First the HUNTER : MOVE x y | BUST id
     # Second the GHOST CATCHER: MOVE x y | TRAP id | RELEASE
     # Third the SUPPORT: MOVE x y | STUN id | RADAR
-    print("MOVE {} {}".format(coorHunterX,coorHunterY))
+
+
+    print("MOVE 8000 4500")
+    print("MOVE 8000 4500")
+    print("MOVE 8000 4500")
+
+"""
+    if(huntDoBust):
+        print("MOVE 8000 4500")
+        #print("BUST {}".format(idFantome))
+        print("je suis la", file=sys.stderr, flush=True)
+        huntDoBust = False
+    else:
+        #print("MOVE {} {}".format(coorHunterX,coorHunterY))
+        print("MOVE {} {}".format(8000,4500))
+
+
+
+
     print("MOVE {} {}".format(coorGhostCatcherX,coorGhostCatcherY))
+
+
+
+
     if(supDoRadar):
         print("RADAR")
         supDoRadar = False
@@ -148,3 +207,4 @@ while True:
         print("MOVE {} {}".format(coorSupportX,coorSupportY))
 
 
+"""
