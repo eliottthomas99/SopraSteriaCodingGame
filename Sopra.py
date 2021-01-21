@@ -9,6 +9,11 @@ ghost_count = int(input())  # the amount of ghosts on the map
 my_team_id = int(input())  # if this is 0, your base is on the top left of the map, if it is one, on the bottom right
 radarDone = False # savoir si on a utilisé le radar
 
+HUNTER = 0
+ATTRAPEUR = 1
+SUPPORT = 2
+FANTOME = -1 
+
 print(("Mon id",my_team_id), file=sys.stderr, flush=True)
 
 
@@ -28,6 +33,16 @@ def distMoy(coordonees,goal):
     M / len(coordonees)
     return M
 
+def fantomeLePlusProche(listeFantomes,buster):
+    indice = 0
+    minDist = 30000 # plus grand que la map
+    for k in range len(listeFantomes):
+        distance = distance([listeFantomes[k][1],[listeFantomes[k][2]],buster) #distance entre 1 fantome et le buster concerné, pour le moment le hunter
+        if(dist<minDist):
+            minDist = dist
+            indice = k
+    return k
+
 
 # game loop
 while True:
@@ -37,6 +52,15 @@ while True:
     equipeAdverse  = []
     equipeFantome = []
 
+    coorHunterX  = 8000 
+    coorHunterY = 4500
+    coorGhostCatcherX  = 8000
+    coorGhostCatcherY = 4500
+    coorSupportX  =8000
+    coorSupportY =4500
+
+    #les actions de chacun
+    supDoRadar = False
 
 
     for i in range(entities):
@@ -57,20 +81,52 @@ while True:
 
 
     
+    currentCoorHunter = []
+    currentCoorAttrapeur = []
+    currentCoorSupport = []
+    for buster in equipeMoi:
+        if(buster[3]==HUNTER):
+            currentCoorHunter.append(buster[1])
+            currentCoorHunter.append(buster[2])
+        if(buster[3]==ATTRAPEUR):
+            currentCoorAttrapeur.append(buster[1])
+            currentCoorAttrapeur.append(buster[2])
+        if(buster[3]==SUPPORT):
+            currentCoorSupport.append(buster[1])
+            currentCoorSupport.append(buster[2])
 
     XMoi = [entity[1] for entity in equipeMoi]
     YMoi = [entity[2] for entity in equipeMoi]
     coordonnees = [  [XMoi[k],YMoi[k]] for k in range(len(XMoi))   ] #les coordonnées de mes bros
 
-    numFantomes = len(equipeFantome)
+    numFantomes = len(equipeFantome) #le nombre de fantomes visibles
+    barycentre = barycentreMoi(XMoi,YMoi)
+
+
     if(numFantomes==0): # Si on ne voit aucun fantome, il faut plus de visibilité 
-        barycentre = barycentreMoi(XMoi,YMoi)
+        
         #print(barycentre, file=sys.stderr, flush=True)
         dist = distMoy(coordonnees,barycentre)
         #print(dist, file=sys.stderr, flush=True)
         if(dist<2200): #S'ils sont trop proches les uns des autres
             #les 3 vont dans des spots aléatoires pour se disperser
+            coorHunterX = random.randint(0,16000)
+            coorHunterY = random.randint(0,9000)
+            coorGhostCatcherX = random.randint(0,16000)
+            coorGhostCatcherY = random.randint(0,9000)
+            coorSupportX = random.randint(0,16000)
+            coorSupportY = random.randint(0,9000)
+            coorHunter =[coorHunterX,coorHunterY] #coordonnee du hunter
+            coorGhostCatcher = [coorGhostCatcherX,coorGhostCatcherY] #coor du ghost catcher
+            coorSupport = [coorSupportX,coorSupportY] #coor du support
+        else: #ils sont déjà loin donc il faut employer les grands moyen
+            if(not radarDone):
+                supDoRadar = True
+                radarDone  = True
 
+    else: #si on voit un ou des fantomes
+        # le hunter et l'attrapeur vont se rapprocher du fantome le plus proche du hunter
+        indiceF = fantomeLePlusProche(equipeFantome,currentCoorHunter)
 
     # Write an action using print
     # To debug: print("Debug messages...", file=sys.stderr, flush=True)
@@ -83,8 +139,12 @@ while True:
     # First the HUNTER : MOVE x y | BUST id
     # Second the GHOST CATCHER: MOVE x y | TRAP id | RELEASE
     # Third the SUPPORT: MOVE x y | STUN id | RADAR
-    print("MOVE 8000 4500")
-    print("MOVE 8000 4500")
-    print("MOVE 8000 4500")
+    print("MOVE {} {}".format(coorHunterX,coorHunterY))
+    print("MOVE {} {}".format(coorGhostCatcherX,coorGhostCatcherY))
+    if(supDoRadar):
+        print("RADAR")
+        supDoRadar = False
+    else:    
+        print("MOVE {} {}".format(coorSupportX,coorSupportY))
 
 
