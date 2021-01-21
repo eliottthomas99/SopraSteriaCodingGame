@@ -12,6 +12,7 @@ print(("Mon id",my_team_id), file=sys.stderr, flush=True)
 # game loop
 while True:
     entities = int(input())  # the number of busters and ghosts visible to you
+    """
     entity_id_list = []
     x_list = []
     y_list = []
@@ -19,6 +20,12 @@ while True:
     entity_role_list = []
     state_list = []
     value_list = []
+    """
+
+    equipeMoi = []
+    equipeAdverse  = []
+    equipeFantome = []
+
 
 
     for i in range(entities):
@@ -29,6 +36,17 @@ while True:
         # state: For busters: 0=idle, 1=carrying a ghost. For ghosts: remaining stamina points.
         # value: For busters: Ghost id being carried/busted or number of turns left when stunned. For ghosts: number of busters attempting to trap this ghost.
         entity_id, x, y, entity_type, entity_role, state, value = [int(j) for j in input().split()]
+        
+        if(type==my_team_id):
+            equipeMoi.append([entity_id,x,y,entity_type,entity_role,state,value])
+        elif(type==(my_team_id+1)%2): #l'autre équipe
+            equipeAdverse.append([entity_id,x,y,entity_type,entity_role,state,value])
+        else: #les fantomes
+            equipeFantome.append([entity_id,x,y,entity_type,entity_role,state,value])
+
+
+        
+        """
         entity_id_list.append(entity_id)
         x_list.append(x)
         y_list.append(y)
@@ -36,14 +54,16 @@ while True:
         entity_role_list.append(entity_role)
         state_list.append(state)
         value_list.append(value)
+        """
 
 
     # Write an action using print
     # To debug: print("Debug messages...", file=sys.stderr, flush=True)
     print(entity_id_list, file=sys.stderr, flush=True)
 
+    #Séparer notre équipe, de l'autre, et des fantomes
 
-    
+
 
 
     # First the HUNTER : MOVE x y | BUST id
