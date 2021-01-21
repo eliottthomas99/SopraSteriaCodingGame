@@ -1,6 +1,6 @@
 import sys
 import math
-
+import numpy as np 
 # Send your busters out into the fog to trap ghosts and bring them home!
 
 busters_per_player = int(input())  # the amount of busters you control
@@ -12,16 +12,7 @@ print(("Mon id",my_team_id), file=sys.stderr, flush=True)
 # game loop
 while True:
     entities = int(input())  # the number of busters and ghosts visible to you
-    """
-    entity_id_list = []
-    x_list = []
-    y_list = []
-    entity_type_list =[]
-    entity_role_list = []
-    state_list = []
-    value_list = []
-    """
-
+    
     equipeMoi = []
     equipeAdverse  = []
     equipeFantome = []
@@ -37,29 +28,21 @@ while True:
         # value: For busters: Ghost id being carried/busted or number of turns left when stunned. For ghosts: number of busters attempting to trap this ghost.
         entity_id, x, y, entity_type, entity_role, state, value = [int(j) for j in input().split()]
         
-        if(type==my_team_id):
+        if(entity_type==my_team_id):
             equipeMoi.append([entity_id,x,y,entity_type,entity_role,state,value])
-        elif(type==(my_team_id+1)%2): #l'autre équipe
+        elif(entity_type==(my_team_id+1)%2): #l'autre équipe
             equipeAdverse.append([entity_id,x,y,entity_type,entity_role,state,value])
         else: #les fantomes
             equipeFantome.append([entity_id,x,y,entity_type,entity_role,state,value])
 
 
-        
-        """
-        entity_id_list.append(entity_id)
-        x_list.append(x)
-        y_list.append(y)
-        entity_type_list.append(entity_type)
-        entity_role_list.append(entity_role)
-        state_list.append(state)
-        value_list.append(value)
-        """
+
+
 
 
     # Write an action using print
     # To debug: print("Debug messages...", file=sys.stderr, flush=True)
-    print(entity_id_list, file=sys.stderr, flush=True)
+    print(np.array(equipeFantome), file=sys.stderr, flush=True)
 
     #Séparer notre équipe, de l'autre, et des fantomes
 
