@@ -82,19 +82,32 @@ while True:
     equipeAdverse  = []
     equipeFantome = []
 
+
+    """
     coorHunterX  = 8000 
     coorHunterY = 4500
     coorGhostCatcherX  = 8000
     coorGhostCatcherY = 4500
     coorSupportX  =8000
     coorSupportY =4500
+    """
+
+    coorHunterX = random.randint(0,16000)
+    coorHunterY = random.randint(0,9000)
+    coorGhostCatcherX = random.randint(0,16000)
+    coorGhostCatcherY = random.randint(0,9000)
+    coorSupportX = random.randint(0,16000)
+    coorSupportY = random.randint(0,9000)
+
 
     coorFantomeProche = [0,0]
     idFantome  = 0
     idFantomeToCatch = 0 #il faut bien initialiser à qqch
+    idFantomeToStun =0 #idem
     #les actions de chacun
     huntDoBust = False
     supDoRadar = False
+    supportDoStun = False
     AttrapeurDoTrap = False
     AttrapeurDoRelease  = False
 
@@ -129,7 +142,7 @@ while True:
         if(buster[4]==ATTRAPEUR):
             currentCoorAttrapeur.append(buster[1])
             currentCoorAttrapeur.append(buster[2])
-            print(("Attributioncoor",currentCoorAttrapeur), file=sys.stderr, flush=True)
+            #print(("Attributioncoor",currentCoorAttrapeur), file=sys.stderr, flush=True)
 
         if(buster[4]==SUPPORT):
             currentCoorSupport.append(buster[1])
@@ -223,13 +236,15 @@ while True:
                         AttrapeurDoTrap = True
 
             ##Comportement de SUPPORT
-            """
+            
             #y a t il des ennemis à stun ?
-            ennemisToStun = []
-                for fantome in equipeFantome:
-                    if (fantome[5]==0): #le fantome n'a plus d'endurance
-                        fantomesToCatch.append(fantome)
-            """
+            #ennemisToStun = []
+                for enemi in equipeAdverse:
+                    if (enemi[5]==1 or enemi[5]==1): #lennemi porte un fantome , feu !!
+                        idFantomeToStun  = enemi[0] #l'ID de l'ennemi à stun
+                        supportDoStun = True
+
+            
             
 
 
@@ -278,6 +293,8 @@ while True:
     if(supDoRadar):
         print("RADAR")
         supDoRadar = False
+    elif(supportDoStun):
+        print("STUN {}".format(idFantomeToStun))
     else:    
         print("MOVE {} {}".format(coorSupportX,coorSupportY))
 
