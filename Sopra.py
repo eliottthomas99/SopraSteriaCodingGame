@@ -15,12 +15,21 @@ SUPPORT = 2
 FANTOME = -1 
 OTHERTEAM = (my_team_id+1)%2 #l'identifiant de l'autre équipe
 
+coorBase = [0,0]
 
+if(my_team_id!=0): #Si on est dans l'équipe 1
+    coorBase[0]=16000
+    coorBase[1]=9000
 
 
 print(("Mon id",my_team_id), file=sys.stderr, flush=True)
 
 
+def catching(equipe):
+    for buster in equipe:
+        if(buster[5]==1): 
+            return True
+    return False
 
 def getSymetric(center,extern):
     xsym = 2*center[0]-extern[0]
@@ -34,7 +43,7 @@ def barycentreMoi(X,Y): #renvoie le barycentre de notre equipe
     return [xMoy,yMoy]
 
 def distance(a,b):
-    return np.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2 )
+    return np.sqrt(  (a[0]-b[0])**2 + (a[1]-b[1])**2 )
 
 def distMoy(coordonees,goal):
     M=0 #la moyenne des distances au goal 
@@ -43,7 +52,7 @@ def distMoy(coordonees,goal):
     M / len(coordonees)
     return M
 
-def fantomeLePlusProche(listeFantomes,buster):
+def fantomeLePlusProche(listeFantomes,LEbuster):
     
     indice = 0
     minDist = 30000 # plus grand que la map
@@ -51,7 +60,11 @@ def fantomeLePlusProche(listeFantomes,buster):
     for k in range(n):
         #indice+=1
         LK = listeFantomes[k]
-        dist = distance([   LK[1] , LK[2] ],buster) #distance entre 1 fantome et le buster concerné, pour le moment le hunter
+
+        print(("LK",LK), file=sys.stderr, flush=True)
+        print(("LEbuster",LEbuster), file=sys.stderr, flush=True)
+
+        dist = distance([   LK[1] , LK[2] ],LEbuster) #distance entre 1 fantome et le buster concerné, pour le moment le hunter
         if(dist<minDist):
            minDist = dist
            indice = k
@@ -78,13 +91,15 @@ while True:
 
     coorFantomeProche = [0,0]
     idFantome  = 0
+    idFantomeToCatch = 0 #il faut bien initialiser à qqch
     #les actions de chacun
     huntDoBust = False
     supDoRadar = False
     AttrapeurDoTrap = False
+    AttrapeurDoRelease  = False
 
     #les etats
-    catching = False #on est en train d'attraper quelqu'un ?
+    #catching = False #on est en train d'attraper quelqu'un ?
 
     for i in range(entities):
         # entity_id: buster id or ghost id
@@ -108,13 +123,15 @@ while True:
     currentCoorAttrapeur = []
     currentCoorSupport = []
     for buster in equipeMoi:
-        if(buster[3]==HUNTER):
+        if(buster[4]==HUNTER):
             currentCoorHunter.append(buster[1])
             currentCoorHunter.append(buster[2])
-        if(buster[3]==ATTRAPEUR):
+        if(buster[4]==ATTRAPEUR):
             currentCoorAttrapeur.append(buster[1])
             currentCoorAttrapeur.append(buster[2])
-        if(buster[3]==SUPPORT):
+            print(("Attributioncoor",currentCoorAttrapeur), file=sys.stderr, flush=True)
+
+        if(buster[4]==SUPPORT):
             currentCoorSupport.append(buster[1])
             currentCoorSupport.append(buster[2])
 
@@ -150,7 +167,6 @@ while True:
         #sinon on attaque
     else: #si on voit un ou des fantomes
 
-
             ##Comportement de HUNTER
             indiceF = fantomeLePlusProche(equipeFantome,currentCoorHunter)
             coorFantomeProche = [equipeFantome[indiceF][1],equipeFantome[indiceF][2] ]
@@ -172,30 +188,49 @@ while True:
             ##Comportement de ATTRAPEUR
             # on commence par voir si on porte déjà un fantome
 
-
-
-            #  s'il y a des fantomes visibles et attrapables (0HP)
-            fantomesToCatch = []
-            for fantome in equipeFantome:
-                if (fantome[5]==0): #le fantome n'a plus d'endurance
-                    fantomesToCatch.append(fantome)
-            # ensuite on cherche le plus proche
-            indiceFToCatch = fantomeLePlusProche(fantomesToCatch,currentCoorAttrapeur)
-            coorFantomeProcheToCatch = [fantomesToCatch[indiceFToCatch][1],fantomesToCatch[indiceFToCatch][2] ]
-
-            # Si l'attrapeur est bien placé
+            if(catching(equipeMoi)): #alors on se dirige vers la base
+                if( distance(currentCoorAttrapeur,coorBase) < 1600  ): #si on est suffisamment proche, on relache
+                    AttrapeurDoRelease  = True
+                else:
+                    coorGhostCatcherX = coorBase[0]
+                    coorGhostCatcherY = coorBase[1]
             
-            if(distance(coorFantomeProcheToCatch,currentCoorAttrapeur)>1760): #on est trop loin
-                #on se rapproche du fantome
-                coorGhostCatcherX = coorFantomeProcheToCatch[0]
-                coorGhostCatcherY = coorFantomeProcheToCatch[1]
-            elif(distance(coorFantomeProcheToCatch,currentCoorAttrapeur)<900):#si la distance est trop faible
-                #on s'écarte
-                symet = getSymetric(currentCoorAttrapeur,coorFantomeProcheToCatch)
-                coorGhostCatcherX = symet[0]
-                coorGhostCatcherY = symet[1]
-            else: #on capture
-                AttrapeurDoTrap = True
+            else:
+                
+                fantomesToCatch = []
+                for fantome in equipeFantome:
+                    if (fantome[5]==0): #le fantome n'a plus d'endurance
+                        fantomesToCatch.append(fantome)
+
+                if( len(fantomesToCatch)!=0 ): #  s'il y a des fantomes visibles et attrapables (0HP)
+                    # ensuite on cherche le plus proche
+                    indiceFToCatch = fantomeLePlusProche(fantomesToCatch,currentCoorAttrapeur)
+                    coorFantomeProcheToCatch = [fantomesToCatch[indiceFToCatch][1],fantomesToCatch[indiceFToCatch][2] ]
+                    idFantomeToCatch  = fantomesToCatch[indiceFToCatch][0] #l'ID du fantome à catch
+
+                    # Si l'attrapeur est bien placé
+                    
+                    if(distance(coorFantomeProcheToCatch,currentCoorAttrapeur)>1760): #on est trop loin
+                        #on se rapproche du fantome
+                        coorGhostCatcherX = coorFantomeProcheToCatch[0]
+                        coorGhostCatcherY = coorFantomeProcheToCatch[1]
+                    elif(distance(coorFantomeProcheToCatch,currentCoorAttrapeur)<900):#si la distance est trop faible
+                        #on s'écarte
+                        symet = getSymetric(currentCoorAttrapeur,coorFantomeProcheToCatch)
+                        coorGhostCatcherX = symet[0]
+                        coorGhostCatcherY = symet[1]
+                    else: #on capture
+                        AttrapeurDoTrap = True
+
+            ##Comportement de SUPPORT
+            """
+            #y a t il des ennemis à stun ?
+            ennemisToStun = []
+                for fantome in equipeFantome:
+                    if (fantome[5]==0): #le fantome n'a plus d'endurance
+                        fantomesToCatch.append(fantome)
+            """
+            
 
 
 
@@ -230,8 +265,12 @@ while True:
 
 
 
-
-    print("MOVE {} {}".format(coorGhostCatcherX,coorGhostCatcherY))
+    if(AttrapeurDoTrap):
+        print("TRAP {}".format(idFantomeToCatch))
+    elif(AttrapeurDoRelease):
+        print("RELEASE")
+    else:
+        print("MOVE {} {}".format(coorGhostCatcherX,coorGhostCatcherY))
 
 
 
