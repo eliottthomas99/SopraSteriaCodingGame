@@ -142,12 +142,7 @@ while True:
                 radarDone  = True
     
         #sinon on attaque
-
-
-        #IL Y A UNE ERREUR DANS CE BLOC EN DESSOUS 
-
-
-        else: #si on voit un ou des fantomes
+    else: #si on voit un ou des fantomes
             indiceF = fantomeLePlusProche(equipeFantome,currentCoorHunter)
             coorFantomeProche = [equipeFantome[indiceF][1],equipeFantome[indiceF][2] ]
             idFantome  = equipeFantome[indiceF][0] #l'ID du fantome le plus proche pour savoir sur qui tirer
@@ -177,16 +172,16 @@ while True:
     # Second the GHOST CATCHER: MOVE x y | TRAP id | RELEASE
     # Third the SUPPORT: MOVE x y | STUN id | RADAR
 
+    """
+    print("MOVE 8000 4500")
+    print("MOVE 8000 4500")
+    print("MOVE 8000 4500")
+    """
 
-    print("MOVE 8000 4500")
-    print("MOVE 8000 4500")
-    print("MOVE 8000 4500")
-
-"""
     if(huntDoBust):
-        print("MOVE 8000 4500")
-        #print("BUST {}".format(idFantome))
-        print("je suis la", file=sys.stderr, flush=True)
+        #print("MOVE 8000 4500")
+        print("BUST {}".format(idFantome))
+        #print("je suis la", file=sys.stderr, flush=True)
         huntDoBust = False
     else:
         #print("MOVE {} {}".format(coorHunterX,coorHunterY))
@@ -207,4 +202,3 @@ while True:
         print("MOVE {} {}".format(coorSupportX,coorSupportY))
 
 
-"""
