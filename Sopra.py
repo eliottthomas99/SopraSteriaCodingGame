@@ -134,6 +134,11 @@ while True:
         elif(entity_type==OTHERTEAM): #l'autre équipe
             equipeAdverse.append([entity_id,x,y,entity_type,entity_role,state,value])
             #on regarde si l'autre attrapeur attrape quelqun que l'on a mémorisé
+            if(entity_role==1 and value!=1): #on a isolé l'attrapeur
+                for fantome in fantomesFaiblesMémorises:
+                            if (fantome[0]==value):
+                                fantomesFaiblesMémorises.remove(fantome)
+
         else: #les fantomes
             equipeFantome.append([entity_id,x,y,entity_type,entity_role,state,value])
             if(state==0 ):
