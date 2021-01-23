@@ -190,6 +190,7 @@ while True:
         #print(dist, file=sys.stderr, flush=True)
         if(dist<2200): #S'ils sont trop proches les uns des autres
             #les 3 vont dans des spots aléatoires pour se disperser
+            """
             coorHunterX = random.randint(0,16000)
             coorHunterY = random.randint(0,9000)
             coorGhostCatcherX = random.randint(0,16000)
@@ -199,6 +200,20 @@ while True:
             coorHunter =[coorHunterX,coorHunterY] #coordonnee du hunter
             coorGhostCatcher = [coorGhostCatcherX,coorGhostCatcherY] #coor du ghost catcher
             coorSupport = [coorSupportX,coorSupportY] #coor du support
+            """
+            coorHunterX = random.randint(4000,12000)
+            coorHunterY = random.randint(2250,6750)
+            if(my_team_id==0):
+                coorGhostCatcherX = random.randint(0,8000)
+                coorGhostCatcherY = random.randint(0,9000)
+                coorSupportX = random.randint(8000,16000)
+                coorSupportY = random.randint(0,9000)
+            else:
+                coorGhostCatcherX = random.randint(8000,16000)
+                coorGhostCatcherY = random.randint(0,9000)
+                coorSupportX = random.randint(0,8000)
+                coorSupportY = random.randint(0,9000)
+
         else: #ils sont déjà loin donc il faut employer les grands moyen
             if(not radarDone):
                 supDoRadar = True
