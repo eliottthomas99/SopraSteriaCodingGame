@@ -17,6 +17,9 @@ OTHERTEAM = (my_team_id+1)%2 #l'identifiant de l'autre équipe
 
 coorBase = [0,0]
 coorOther  =[16000,9000]
+fantomesFaiblesMémorises  = [] 
+
+
 
 if(my_team_id!=0): #Si on est dans l'équipe 1
     coorBase[0]=16000
@@ -130,9 +133,19 @@ while True:
             equipeMoi.append([entity_id,x,y,entity_type,entity_role,state,value])
         elif(entity_type==OTHERTEAM): #l'autre équipe
             equipeAdverse.append([entity_id,x,y,entity_type,entity_role,state,value])
+            #on regarde si l'autre attrapeur attrape quelqun que l'on a mémorisé
         else: #les fantomes
             equipeFantome.append([entity_id,x,y,entity_type,entity_role,state,value])
-
+            if(state==0 ):
+                toadd = True
+                for fatigues in fantomesFaiblesMémorises:
+                    if(fatigues[0]==entity_id   ):
+                        toadd = False
+                if(toadd):
+                    fantomesFaiblesMémorises.append([entity_id,x,y,entity_type,entity_role,state,value])
+                    print("ajoutfaible", file=sys.stderr, flush=True)
+                    print(fantomesFaiblesMémorises, file=sys.stderr, flush=True)
+                
 
     
     currentCoorHunter = []
@@ -156,10 +169,16 @@ while True:
     coordonnees = [  [XMoi[k],YMoi[k]] for k in range(len(XMoi))   ] #les coordonnées de mes bros
 
     numFantomes = len(equipeFantome) #le nombre de fantomes visibles
+    numEnemis = len(equipeAdverse)
+    numEntités = numEnemis+numFantomes
     barycentre = barycentreMoi(XMoi,YMoi)
 
 
-    if(numFantomes==0): # Si on ne voit aucun fantome, il faut plus de visibilité 
+
+
+
+
+    if(numEntités==0): # Si on ne voit aucune entités, il faut plus de visibilité 
         
         #print(barycentre, file=sys.stderr, flush=True)
         dist = distMoy(coordonnees,barycentre)
@@ -181,24 +200,35 @@ while True:
                 radarDone  = True
     
         #sinon on attaque
-    else: #si on voit un ou des fantomes
+    else: #si on voit une ou des entités
 
             ##Comportement de HUNTER
-            indiceF = fantomeLePlusProche(equipeFantome,currentCoorHunter)
-            coorFantomeProche = [equipeFantome[indiceF][1],equipeFantome[indiceF][2] ]
-            idFantome  = equipeFantome[indiceF][0] #l'ID du fantome le plus proche pour savoir sur qui tirer
-            #si la distance du plus proche fantome est trop élevée
-            if(distance(coorFantomeProche,currentCoorHunter)>1760):
-                #on se rapproche du fantome
-                coorHunterX = coorFantomeProche[0]
-                coorHunterY = coorFantomeProche[1]
-            elif(distance(coorFantomeProche,currentCoorHunter)<900):#si la distance est trop faible
-                #on s'écarte
-                symet = getSymetric(currentCoorHunter,coorFantomeProche)
-                coorHunterX = symet[0]
-                coorHunterY = symet[1]
-            else: #on tape
-                huntDoBust = True
+            #on isole uniquement les fantomes qui ne sont pas à 0 d'endurance
+            fantomesEnForme  = []
+            for fantome in equipeFantome:
+                if (fantome[5]!=0): #s'il lui reste des pv
+                    fantomesEnForme.append(fantome)
+                   
+            if(  len(fantomesEnForme) ==0 ): #si on ne voit personne à bust
+                coorHunterX = random.randint(0,16000)
+                coorHunterY = random.randint(0,9000)
+            else:
+
+                indiceF = fantomeLePlusProche(fantomesEnForme,coorBase)
+                coorFantomeProche = [fantomesEnForme[indiceF][1],fantomesEnForme[indiceF][2] ]
+                idFantome  = fantomesEnForme[indiceF][0] #l'ID du fantome le plus proche pour savoir sur qui tirer
+                #si la distance du plus proche fantome est trop élevée
+                if(distance(coorFantomeProche,currentCoorHunter)>1760):
+                    #on se rapproche du fantome
+                    coorHunterX = coorFantomeProche[0]
+                    coorHunterY = coorFantomeProche[1]
+                elif(distance(coorFantomeProche,currentCoorHunter)<900):#si la distance est trop faible
+                    #on s'écarte
+                    symet = getSymetric(currentCoorHunter,coorFantomeProche)
+                    coorHunterX = symet[0]
+                    coorHunterY = symet[1]
+                else: #on tape
+                    huntDoBust = True
             
 
             ##Comportement de ATTRAPEUR
@@ -237,29 +267,42 @@ while True:
                         coorGhostCatcherY = symet[1]
                     else: #on capture
                         AttrapeurDoTrap = True
+                        #on le retire de nos souvenirs si on l'avait mémorisé
+                        for fantome in fantomesFaiblesMémorises:
+                            if (fantome[0]==idFantomeToCatch):
+                                fantomesFaiblesMémorises.remove(fantome)
+
+                
+                else: #y a t-il des fantomes fatigués non visibles mais mémorisés ?
+                    if( len(fantomesFaiblesMémorises) !=0 ) :
+                        print(fantomesFaiblesMémorises, file=sys.stderr, flush=True)
+                        indiceFToCatchFatigue = fantomeLePlusProche(fantomesFaiblesMémorises,currentCoorAttrapeur)
+                        coorGhostCatcherX = fantomesFaiblesMémorises[indiceFToCatchFatigue][1]
+                        coorGhostCatcherY = fantomesFaiblesMémorises[indiceFToCatchFatigue][2]
+
 
             ##Comportement de SUPPORT
             
             #y a t il des ennemis à stun ?
             #ennemisToStun = []
-                for enemi in equipeAdverse:
-                    if(enemi[4]==1): #par default le support marque l'attrapeur adverse
-                        coorSupportX = enemi[1]
-                        coorSupportY = enemi[2]
+            for enemi in equipeAdverse:
+                if(enemi[4]==1): #par default le support marque l'attrapeur adverse
+                    coorSupportX = enemi[1]
+                    coorSupportY = enemi[2]
 
-                    if (enemi[5]==1 or enemi[5]==3): #lennemi porte un fantome ou tente de le trap , feu !!
-                        #il faut voir s'il est suffisamment proche
-                        if(  distance(currentCoorSupport, [enemi[1], enemi[2]] )   ): #on peut effectivement tirer
-                            idFantomeToStun  = enemi[0] #l'ID de l'ennemi à stun
-                            supportDoStun = True
-                        else: #on doit se rapprocher
-                            #potentielle amélioration pour plus tard. On pourra lui couper la route car on sait qu'il va à sa base
-                            if(enemi[5]==1): #il transporte un fantome
-                                coorSupportX = coorOther[0]
-                                coorSupportY = coorOther[1]
-                            elif(enemi[5]==3): #il tente de trap un fantome
-                                coorSupportX = enemi[1]
-                                coorSupportY = enemi[2]
+                if (enemi[5]==1 or enemi[5]==3): #lennemi porte un fantome ou tente de le trap , feu !!
+                    #il faut voir s'il est suffisamment proche
+                    if(  distance(currentCoorSupport, [enemi[1], enemi[2]] )   ): #on peut effectivement tirer
+                        idFantomeToStun  = enemi[0] #l'ID de l'ennemi à stun
+                        supportDoStun = True
+                    else: #on doit se rapprocher
+                        #potentielle amélioration pour plus tard. On pourra lui couper la route car on sait qu'il va à sa base
+                        if(enemi[5]==1): #il transporte un fantome
+                            coorSupportX = coorOther[0]
+                            coorSupportY = coorOther[1]
+                        elif(enemi[5]==3): #il tente de trap un fantome
+                            coorSupportX = enemi[1]
+                            coorSupportY = enemi[2]
                             
                         
 
