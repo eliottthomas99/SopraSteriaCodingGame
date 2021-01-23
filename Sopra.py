@@ -16,13 +16,16 @@ FANTOME = -1
 OTHERTEAM = (my_team_id+1)%2 #l'identifiant de l'autre équipe
 
 coorBase = [0,0]
+coorOther  =[16000,9000]
 
 if(my_team_id!=0): #Si on est dans l'équipe 1
     coorBase[0]=16000
     coorBase[1]=9000
+    coorOther[0] = 0
+    coorOther[1] = 0
 
 
-print(("Mon id",my_team_id), file=sys.stderr, flush=True)
+#print(("Mon id",my_team_id), file=sys.stderr, flush=True)
 
 
 def catching(equipe):
@@ -61,8 +64,8 @@ def fantomeLePlusProche(listeFantomes,LEbuster):
         #indice+=1
         LK = listeFantomes[k]
 
-        print(("LK",LK), file=sys.stderr, flush=True)
-        print(("LEbuster",LEbuster), file=sys.stderr, flush=True)
+        #print(("LK",LK), file=sys.stderr, flush=True)
+        #print(("LEbuster",LEbuster), file=sys.stderr, flush=True)
 
         dist = distance([   LK[1] , LK[2] ],LEbuster) #distance entre 1 fantome et le buster concerné, pour le moment le hunter
         if(dist<minDist):
@@ -240,9 +243,25 @@ while True:
             #y a t il des ennemis à stun ?
             #ennemisToStun = []
                 for enemi in equipeAdverse:
-                    if (enemi[5]==1 or enemi[5]==1): #lennemi porte un fantome , feu !!
-                        idFantomeToStun  = enemi[0] #l'ID de l'ennemi à stun
-                        supportDoStun = True
+                    if(enemi[4]==1): #par default le support marque l'attrapeur adverse
+                        coorSupportX = enemi[1]
+                        coorSupportY = enemi[2]
+
+                    if (enemi[5]==1 or enemi[5]==3): #lennemi porte un fantome ou tente de le trap , feu !!
+                        #il faut voir s'il est suffisamment proche
+                        if(  distance(currentCoorSupport, [enemi[1], enemi[2]] )   ): #on peut effectivement tirer
+                            idFantomeToStun  = enemi[0] #l'ID de l'ennemi à stun
+                            supportDoStun = True
+                        else: #on doit se rapprocher
+                            #potentielle amélioration pour plus tard. On pourra lui couper la route car on sait qu'il va à sa base
+                            if(enemi[5]==1): #il transporte un fantome
+                                coorSupportX = coorOther[0]
+                                coorSupportY = coorOther[1]
+                            elif(enemi[5]==3): #il tente de trap un fantome
+                                coorSupportX = enemi[1]
+                                coorSupportY = enemi[2]
+                            
+                        
 
             
             
