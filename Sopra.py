@@ -204,15 +204,21 @@ while True:
             coorHunterX = random.randint(4000,12000)
             coorHunterY = random.randint(2250,6750)
             if(my_team_id==0):
-                coorGhostCatcherX = random.randint(0,8000)
-                coorGhostCatcherY = random.randint(0,9000)
+                #coorGhostCatcherX = random.randint(0,8000)
+                #coorGhostCatcherY = random.randint(0,9000)
                 coorSupportX = random.randint(8000,16000)
                 coorSupportY = random.randint(0,9000)
             else:
-                coorGhostCatcherX = random.randint(8000,16000)
-                coorGhostCatcherY = random.randint(0,9000)
+                #coorGhostCatcherX = random.randint(8000,16000)
+                #coorGhostCatcherY = random.randint(0,9000)
                 coorSupportX = random.randint(0,8000)
                 coorSupportY = random.randint(0,9000)
+            
+            coorGhostCatcherX = currentCoorHunter[0]
+            coorGhostCatcherY = currentCoorHunter[1]
+            #piste ! Aller là ou on n'est pas trop allé ! Décomposer la carte en une matrice
+
+
 
         else: #ils sont déjà loin donc il faut employer les grands moyen
             if(not radarDone):
@@ -294,6 +300,12 @@ while True:
 
                 
                 else: #y a t-il des fantomes fatigués non visibles mais mémorisés ?
+                    #on commence par vérifier qu'on n'est pas sur une coordonée mémorisée
+                    
+                    for fatigues in fantomesFaiblesMémorises:
+                        if(fatigues[1]==currentCoorAttrapeur[0] and fatigues[2]==currentCoorAttrapeur[1]   ):
+                            fantomesFaiblesMémorises.remove(fatigues)
+
                     if( len(fantomesFaiblesMémorises) !=0 ) :
                         print(fantomesFaiblesMémorises, file=sys.stderr, flush=True)
                         indiceFToCatchFatigue = fantomeLePlusProche(fantomesFaiblesMémorises,currentCoorAttrapeur)
